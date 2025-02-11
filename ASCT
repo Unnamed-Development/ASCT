@@ -1,29 +1,41 @@
 #!/bin/bash
-# Скрипт Andry Server Connecting Tool сделан Andry0980 на базе скрипта lvirt созданный Left.
+
 connect_menu=$(zenity --forms --title="Виртуальный рабочий стол" --text="Параметры" --separator=";" --add-entry="Имя пользователя:" --add-password="Пароль пользователя:" --add-entry="IP компьютера")
-if [[ $connect_menu == *";;"* ]]; then zenity --error --text="Недостаточно аргументов"; exit; fi
 connect_settings=$(zenity --list --checklist --separator=";" --column "Состояние" --column "Описание" --column "Настройка" --width="600" --height="350" \
-TRUE "Звук" "Включить звук" \
-FALSE "Выкл. Мышку" "Отключить захват мышки" \
-FALSE "Выкл. Клавиатуру" "Отключить захват клавиатуры" \
-TRUE "Буфер обмена" "Включить синхронимазцию буфера обмена" \
-TRUE "Окно" "Окно в полноэкранном режиме" \
-FALSE "Админ" "Войти от имени администратора" \
-FALSE "Переподключение" "Автоматическое переподключение"
+	TRUE "Звук" "Включить звук" \
+	FALSE "Выкл. Мышку" "Отключить захват мышки" \
+	FALSE "Выкл. Клавиатуру" "Отключить захват клавиатуры" \
+	TRUE "Буфер обмена" "Включить синхронимазцию буфера обмена" \
+	TRUE "Окно" "Окно в полноэкранном режиме" \
+	FALSE "Админ" "Войти от имени администратора" \
+	FALSE "Переподключение" "Автоматическое переподключение"
 )
 IFS=';' read -ra connect_settings <<< "$connect_settings"
 sound="2"
 elements=${#connect_settings[@]} # кол.во элементов
+
+if [[ $connect_menu == *";;"* ]]; then zenity --error --text="Недостаточно параметров";
+	exit;
+fi
 for (( iteration=0; iteration<elements; iteration++ )); do
-if [[ ${connect_settings[$iteration]} == "Звук" ]]; then sound="0"
-elif [[ ${connect_settings[$iteration]} == "Выкл. Мышку" ]]; then mouse="-mouse-motion"
-elif [[ ${connect_settings[$iteration]} == "Выкл. Клавиатуру" ]]; then keyboard="-grab-keyboard"
-elif [[ ${connect_settings[$iteration]} == "Буфер обмена" ]]; then clipboard="+clipboard"
-elif [[ ${connect_settings[$iteration]} == "Окно" ]]; then window="/f"
-elif [[ ${connect_settings[$iteration]} == "Админ" ]]; then admin="/admin"
-elif [[ ${connect_settings[$iteration]} == "Переподключение" ]]; then reconnect="+auto-reconnect"
-fi; done
+	if [[ ${connect_settings[$iteration]} == "Звук" ]]; then
+		sound="0"
+	elif [[ ${connect_settings[$iteration]} == "Выкл. Мышку" ]]; then
+		mouse="-mouse-motion"
+	elif [[ ${connect_settings[$iteration]} == "Выкл. Клавиатуру" ]]; then
+		keyboard="-grab-keyboard"
+	elif [[ ${connect_settings[$iteration]} == "Буфер обмена" ]]; then
+		clipboard="+clipboard"
+	elif [[ ${connect_settings[$iteration]} == "Окно" ]]; then
+		window="/f"
+	elif [[ ${connect_settings[$iteration]} == "Админ" ]]; then
+		admin="/admin"
+	elif [[ ${connect_settings[$iteration]} == "Переподключение" ]]; then
+		reconnect="+auto-reconnect"
+	fi;
+done
+
 echo "Выбранные настройки: sound:$sound $mouse $keyboard $clipboard $window $admin $reconnect"
 IFS=';' read -ra connect_args <<< "$connect_menu"
-echo "Вы подключаетесь к ${connect_args[2]}, как пользователь ${connect_args[0]}."
+echo "Вы подключаетесь к ${connect_args[2]} как пользователь ${connect_args[0]}."
 xfreerdp -themes -wallpaper $mouse $keyboard $clipboard $window $admin $reconnect /video /audio-mode:$sound /u:${connect_args[0]} /p:${connect_args[1]} /v:${connect_args[2]}
